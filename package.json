@@ -1,0 +1,21 @@
+{
+    "name": "paystack-resellerclub",
+    "version": "0.0.0",
+    "description": "API",
+    "main": "app.js",
+    "author": {
+        "name": "Paystack"
+    },
+    "dependencies": {
+        "body-parser": "^1.18.3",
+        "cookie-parser": "^1.4.4",
+        "cors": "^2.8.5",
+        "dotenv": "^6.2.0",
+        "ejs": "^2.6.1",
+        "express": "^4.16.4",
+        "mysql": "^2.16.0",
+        "nodemon": "^1.18.10",
+        "request": "^2.88.0",
+        "request-ip": "^2.1.3"
+    }
+}
