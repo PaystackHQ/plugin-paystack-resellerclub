@@ -82,7 +82,7 @@ $settings = new settings();
             "currency" => "NGN",
             "reference" => $transId,
             "channels" => ["card", "bank"],
-            "callback_url" =>  $protocol.$hostName."/confirm.php",
+            "callback_url" =>  $protocol.$hostName."/paystack/confirm.php",
             "metadata" => array(
                 array(
                     "display_name"=> "Customer Name",
@@ -91,7 +91,7 @@ $settings = new settings();
                 ),
                 array(
                     "display_name"=> "Purchase Description",
-                        "variable_name"=> "purchase_descriptiom",
+                        "variable_name"=> "purchase_description",
                         "value"=> $description
                 )
             )
