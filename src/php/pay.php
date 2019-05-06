@@ -32,7 +32,7 @@ $settings = new settings();
 
     <?php
 
-    $key = $settings -> hostkey;
+    $key = $settings->hostkey;
 
     //This filter removes data that is potentially harmful for your application. It is used to strip tags and remove or encode unwanted characters.
     $_GET = filter_var_array($_GET, FILTER_SANITIZE_STRING);
@@ -70,29 +70,39 @@ $settings = new settings();
     $resellerEmail = $_GET["resellerEmail"];
     $resellerURL = $_GET["resellerURL"];
     $resellerCompanyName = $_GET["resellerCompanyName"];
+    $resellerCurrency = $_GET["resellerCurrency"];
 
     //get current page base URL
     $hostName = $_SERVER['HTTP_HOST']; // output: localhost
-    $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"], 0, 5))=='https://'?'https://':'http://';  // output: http://
-    
+    $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"], 0, 5)) == 'https://' ? 'https://' : 'http://';  // output: http://
+
+    $paymentChannels = "";
+    if ($resellerCurrency == "NGN") {
+        $paymentChannels = ["card", "bank"];
+    } else {
+        $paymentChannels = ["card"];
+    }
+
+
     if (verifyChecksum($paymentTypeId, $transId, $userId, $userType, $transactionType, $invoiceIds, $debitNoteIds, $description, $sellingCurrencyAmount, $accountingCurrencyAmount, $key, $checksum)) {
         $body = array(
             "email" => $emailAddr,
             "amount" => $sellingCurrencyAmount * 100,
-            "currency" => "NGN",
+            // "currency" => "NGN",
+            "currency" => $resellerCurrency,
             "reference" => $transId,
-            "channels" => ["card", "bank"],
-            "callback_url" =>  $protocol.$hostName."/paystack/confirm.php",
+            "channels" => $paymentChannels,
+            "callback_url" =>  $protocol . $hostName . "/paystack/confirm.php",
             "metadata" => array(
                 array(
-                    "display_name"=> "Customer Name",
-                    "variable_name"=>"customer_name",
-                    "value"=> $name
+                    "display_name" => "Customer Name",
+                    "variable_name" => "customer_name",
+                    "value" => $name
                 ),
                 array(
-                    "display_name"=> "Purchase Description",
-                        "variable_name"=> "purchase_description",
-                        "value"=> $description
+                    "display_name" => "Purchase Description",
+                    "variable_name" => "purchase_description",
+                    "value" => $description
                 )
             )
         );
@@ -100,7 +110,7 @@ $settings = new settings();
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => $settings -> paystack_base. "transaction/initialize",
+            CURLOPT_URL => $settings->paystack_base . "transaction/initialize",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => -1, //Maximum number of redirects
@@ -109,7 +119,7 @@ $settings = new settings();
             CURLOPT_CUSTOMREQUEST => "POST",
             CURLOPT_POSTFIELDS => json_encode($body),
             CURLOPT_HTTPHEADER => array(
-                "Authorization: Bearer "  .$settings -> paystack_secretkey,
+                "Authorization: Bearer "  . $settings->paystack_secretkey,
                 "Content-Type: application/json",
             ),
         ));
@@ -122,14 +132,18 @@ $settings = new settings();
         if ($err) {
             echo "cURL Error #:" . $err;
         } else {
-            $auth_url = json_decode($response) -> data -> authorization_url;
-            
-            $_SESSION['redirecturl'] = $redirectUrl;
-            $_SESSION['transid'] = $transId;
-            $_SESSION['sellingcurrencyamount'] = $sellingCurrencyAmount;
-            $_SESSION['accountingcurencyamount'] = $accountingCurrencyAmount;
+            if (json_decode($response)->status) {
+                $auth_url = json_decode($response)->data->authorization_url;
 
-            echo "<script> location.href='" .$auth_url."'; </script>";
+                $_SESSION['redirecturl'] = $redirectUrl;
+                $_SESSION['transid'] = $transId;
+                $_SESSION['sellingcurrencyamount'] = $sellingCurrencyAmount;
+                $_SESSION['accountingcurencyamount'] = $accountingCurrencyAmount;
+
+                echo "<script> location.href='" . $auth_url . "'; </script>";
+            } else {
+                echo json_decode($response)->message;
+            }
         }
     } else {
         /**This message will be dispayed in any of the following case
@@ -144,7 +158,7 @@ $settings = new settings();
 
         echo "Checksum mismatch !";
     }
-?>
+    ?>
 </body>
 
 </html>
