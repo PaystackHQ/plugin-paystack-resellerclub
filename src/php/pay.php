@@ -103,6 +103,11 @@ $settings = new settings();
                     "display_name" => "Purchase Description",
                     "variable_name" => "purchase_description",
                     "value" => $description
+                ),
+                array(
+                    "display_name" => "Plugin",
+                    "variable_name" => "plugin",
+                    "value" => "reseller-club"
                 )
             )
         );
