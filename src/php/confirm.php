@@ -4,7 +4,7 @@ session_start();
 
 require("settings.php");    //file which has required settings
 require("functions.php");    //file which has required functions
-
+require("class-paystack-plugin-tracker.php");
 $settings = new settings();
 ?>
 
@@ -24,7 +24,7 @@ $settings = new settings();
         $transId = $_SESSION['transid'];         //Pass the same transid which was passsed to your Gateway URL at the beginning of the transaction.
         $sellingCurrencyAmount = $_SESSION['sellingcurrencyamount'];
         $accountingCurrencyAmount = $_SESSION['accountingcurencyamount'];
-
+        $pstk_logger = new paystack_plugin_tracker('reseller-club', $settings->paystack_publickey);
         srand((double)microtime() * 1000000);
         $rkey = rand();
 
@@ -58,6 +58,7 @@ $settings = new settings();
             $paymentInfo = json_decode($response);
             if ($paymentInfo->status == true) {
                 if ($paymentInfo->data->status == 'success') {
+                    $pstk_logger->log_transaction_success($transId);
                     $status = "Y";
                 } else {
                     $status = "N";
