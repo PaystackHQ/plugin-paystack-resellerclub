@@ -76,12 +76,12 @@ $settings = new settings();
     $hostName = $_SERVER['HTTP_HOST']; // output: localhost
     $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"], 0, 5)) == 'https://' ? 'https://' : 'http://';  // output: http://
 
-    $paymentChannels = "";
-    if ($resellerCurrency == "NGN") {
-        $paymentChannels = ["card", "bank"];
-    } else {
-        $paymentChannels = ["card"];
-    }
+    $paymentChannels = [];
+    // if ($resellerCurrency == "NGN") {
+    //     $paymentChannels = ["card", "bank"];
+    // } else {
+    //     $paymentChannels = ["card"];
+    // }
 
 
     if (verifyChecksum($paymentTypeId, $transId, $userId, $userType, $transactionType, $invoiceIds, $debitNoteIds, $description, $sellingCurrencyAmount, $accountingCurrencyAmount, $key, $checksum)) {
@@ -91,7 +91,6 @@ $settings = new settings();
             // "currency" => "NGN",
             "currency" => $resellerCurrency,
             "reference" => $transId,
-            "channels" => $paymentChannels,
             "callback_url" =>  $protocol . $hostName . "/paystack/confirm.php",
             "metadata" => array(
                 array(
