@@ -35,42 +35,45 @@ $settings = new settings();
     $key = $settings->hostkey;
 
     //This filter removes data that is potentially harmful for your application. It is used to strip tags and remove or encode unwanted characters.
-    $_GET = filter_var_array($_GET, FILTER_SANITIZE_STRING);
+    //FILTER_SANITIZE_STRING is deprecated since PHP 8.1, so the same sanitising is done here: strip tags and encode quotes.
+    array_walk_recursive($_GET, function (&$getValue) {
+        $getValue = str_replace(array("'", '"'), array("&#39;", "&#34;"), strip_tags((string) $getValue));
+    });
 
     //Below are the  parameters which will be passed from foundation as http GET request
-    $paymentTypeId = $_GET["paymenttypeid"];  //payment type id
-    $transId = $_GET["transid"];               //This refers to a unique transaction ID which we generate for each transaction
-    $userId = $_GET["userid"];               //userid of the user who is trying to make the payment
-    $userType = $_GET["usertype"];             //This refers to the type of user perofrming this transaction. The possible values are "Customer" or "Reseller"
-    $transactionType = $_GET["transactiontype"];  //Type of transaction (ResellerAddFund/CustomerAddFund/ResellerPayment/CustomerPayment)
-    $invoiceIds = $_GET["invoiceids"];           //comma separated Invoice Ids, This will have a value only if the transactiontype is "ResellerPayment" or "CustomerPayment"
-    $debitNoteIds = $_GET["debitnoteids"];       //comma separated DebitNotes Ids, This will have a value only if the transactiontype is "ResellerPayment" or "CustomerPayment"
-    $description = $_GET["description"];
-    $sellingCurrencyAmount = $_GET["sellingcurrencyamount"]; //This refers to the amount of transaction in your Selling Currency
-    $accountingCurrencyAmount = $_GET["accountingcurrencyamount"]; //This refers to the amount of transaction in your Accounting Currency
-    $redirectUrl = $_GET["redirecturl"];  //This is the URL on our server, to which you need to send the user once you have finished charging him
+    $paymentTypeId = $_GET["paymenttypeid"] ?? null;  //payment type id
+    $transId = $_GET["transid"] ?? null;               //This refers to a unique transaction ID which we generate for each transaction
+    $userId = $_GET["userid"] ?? null;               //userid of the user who is trying to make the payment
+    $userType = $_GET["usertype"] ?? null;             //This refers to the type of user perofrming this transaction. The possible values are "Customer" or "Reseller"
+    $transactionType = $_GET["transactiontype"] ?? null;  //Type of transaction (ResellerAddFund/CustomerAddFund/ResellerPayment/CustomerPayment)
+    $invoiceIds = $_GET["invoiceids"] ?? null;           //comma separated Invoice Ids, This will have a value only if the transactiontype is "ResellerPayment" or "CustomerPayment"
+    $debitNoteIds = $_GET["debitnoteids"] ?? null;       //comma separated DebitNotes Ids, This will have a value only if the transactiontype is "ResellerPayment" or "CustomerPayment"
+    $description = $_GET["description"] ?? null;
+    $sellingCurrencyAmount = $_GET["sellingcurrencyamount"] ?? null; //This refers to the amount of transaction in your Selling Currency
+    $accountingCurrencyAmount = $_GET["accountingcurrencyamount"] ?? null; //This refers to the amount of transaction in your Accounting Currency
+    $redirectUrl = $_GET["redirecturl"] ?? null;  //This is the URL on our server, to which you need to send the user once you have finished charging him
 
-    $checksum = $_GET["checksum"];     //checksum for validation
+    $checksum = $_GET["checksum"] ?? null;     //checksum for validation
 
     //extra information for the payment page and other things.
-    $name = $_GET["name"];
-    $company = $_GET["company"];
-    $emailAddr = $_GET["emailAddr"];
-    $address1 = $_GET["address1"];
-    $address2 = $_GET["address2"];
-    $address3 = $_GET["address3"];
-    $city = $_GET["city"];
-    $state = $_GET["state"];
-    $country = $_GET["country"];
-    $zip = $_GET["zip"];
-    $telNoCc = $_GET["telNoCc"];
-    $telNo = $_GET["telNo"];
-    $faxNoCc = $_GET["faxNoCc"];
-    $faxNo = $_GET["faxNo"];
-    $resellerEmail = $_GET["resellerEmail"];
-    $resellerURL = $_GET["resellerURL"];
-    $resellerCompanyName = $_GET["resellerCompanyName"];
-    $resellerCurrency = $_GET["resellerCurrency"];
+    $name = $_GET["name"] ?? null;
+    $company = $_GET["company"] ?? null;
+    $emailAddr = $_GET["emailAddr"] ?? null;
+    $address1 = $_GET["address1"] ?? null;
+    $address2 = $_GET["address2"] ?? null;
+    $address3 = $_GET["address3"] ?? null;
+    $city = $_GET["city"] ?? null;
+    $state = $_GET["state"] ?? null;
+    $country = $_GET["country"] ?? null;
+    $zip = $_GET["zip"] ?? null;
+    $telNoCc = $_GET["telNoCc"] ?? null;
+    $telNo = $_GET["telNo"] ?? null;
+    $faxNoCc = $_GET["faxNoCc"] ?? null;
+    $faxNo = $_GET["faxNo"] ?? null;
+    $resellerEmail = $_GET["resellerEmail"] ?? null;
+    $resellerURL = $_GET["resellerURL"] ?? null;
+    $resellerCompanyName = $_GET["resellerCompanyName"] ?? null;
+    $resellerCurrency = $_GET["resellerCurrency"] ?? null;
 
     //get current page base URL
     $hostName = $_SERVER['HTTP_HOST']; // output: localhost
@@ -131,13 +134,12 @@ $settings = new settings();
         $response = curl_exec($curl);
         $err = curl_error($curl);
 
-        curl_close($curl);
-
         if ($err) {
             echo "cURL Error #:" . $err;
         } else {
-            if (json_decode($response)->status) {
-                $auth_url = json_decode($response)->data->authorization_url;
+            $result = json_decode($response);
+            if (isset($result->status) && $result->status) {
+                $auth_url = $result->data->authorization_url;
 
                 $_SESSION['redirecturl'] = $redirectUrl;
                 $_SESSION['transid'] = $transId;
@@ -146,7 +148,7 @@ $settings = new settings();
 
                 echo "<script> location.href='" . $auth_url . "'; </script>";
             } else {
-                echo json_decode($response)->message;
+                echo isset($result->message) ? $result->message : "";
             }
         }
     } else {

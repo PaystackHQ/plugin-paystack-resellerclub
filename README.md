@@ -6,6 +6,11 @@ Welcome to the ResellerClub Plugin for Paystack repository on GitHub. Here you c
 
 If you are a developer, you can join our Developer Community on [Slack](https://slack.paystack.com).
 
+## Requirements
+- PHP with the 21 Oct 2026 security fixes for critical remote code execution flaws (GHSA-w8hw-w9fx-j79w, GHSA-6wmf-4rv5-p3rp; [php.net advisory](https://www.php.net/releases/8_2_35.php)): **8.2.35, 8.3.36, 8.4.27, 8.5.12 or later**. PHP 8.1 and older no longer receive security fixes.
+- This applies to the **PHP** variant of the plugin (`src/php`). The code works on PHP 8.2 to 8.5.
+- The PHP `curl` and `json` extensions must be enabled.
+
 ## Installation
 This plugin comes in two variants, **PHP** and **ASP**. Both can be installed in the same way, which means you can use both variants the same way. Please choose the variant that works well on your environment.
 
