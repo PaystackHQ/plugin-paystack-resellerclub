@@ -20,12 +20,12 @@ $settings = new settings();
         <?php
         $key = $settings->hostkey;
 
-        $redirectUrl = $_SESSION['redirecturl'];  // redirectUrl received from foundation
-        $transId = $_SESSION['transid'];         //Pass the same transid which was passsed to your Gateway URL at the beginning of the transaction.
-        $sellingCurrencyAmount = $_SESSION['sellingcurrencyamount'];
-        $accountingCurrencyAmount = $_SESSION['accountingcurencyamount'];
+        $redirectUrl = $_SESSION['redirecturl'] ?? null;  // redirectUrl received from foundation
+        $transId = $_SESSION['transid'] ?? null;         //Pass the same transid which was passsed to your Gateway URL at the beginning of the transaction.
+        $sellingCurrencyAmount = $_SESSION['sellingcurrencyamount'] ?? null;
+        $accountingCurrencyAmount = $_SESSION['accountingcurencyamount'] ?? null;
         $pstk_logger = new paystack_plugin_tracker('reseller-club', $settings->paystack_publickey);
-        srand((double)microtime() * 1000000);
+        srand((int)((float)microtime() * 1000000));
         $rkey = rand();
 
         $status = "";
@@ -50,14 +50,12 @@ $settings = new settings();
         $response = curl_exec($curl);
         $err = curl_error($curl);
 
-        curl_close($curl);
-
         if ($err) {
             echo "cURL Error #:" . $err;
         } else {
             $paymentInfo = json_decode($response);
-            if ($paymentInfo->status == true) {
-                if ($paymentInfo->data->status == 'success') {
+            if (isset($paymentInfo->status) && $paymentInfo->status == true) {
+                if (isset($paymentInfo->data->status) && $paymentInfo->data->status == 'success') {
                     $pstk_logger->log_transaction_success($transId);
                     $status = "Y";
                 } else {
